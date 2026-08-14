@@ -18,8 +18,13 @@ Independent University.
 ## Tech Stack
 - Node.js + Express
 - EJS templating
-- SQLite (via `better-sqlite3`) — no external DB server needed
+- SQLite via Node's **built-in** `node:sqlite` module (no external DB server,
+  no native compilation/build tools required — needs Node.js 22.5+)
 - Vanilla CSS
+
+> **Note:** You may see a one-line `ExperimentalWarning: SQLite is an
+> experimental feature` in the console when the server starts. This is
+> harmless and does not affect functionality.
 
 ## 1. Local Setup
 
@@ -104,5 +109,18 @@ inventory-app/
 └── README.md
 ```
 
-## 5. Report
+## 5. Troubleshooting
+
+**`node --version` is below 22.5:** `node:sqlite` won't exist. Update Node.js
+from https://nodejs.org (LTS version) and try again.
+
+**`npm install` fails with node-gyp / Visual Studio errors:** This project no
+longer depends on any package that needs native compilation, so this
+shouldn't happen. If it does, delete `node_modules` and `package-lock.json`
+and run `npm install` again.
+
+**Port 3000 already in use:** Either close whatever is using it, or run
+`set PORT=3001 && npm start` (Windows) / `PORT=3001 npm start` (Mac/Linux).
+
+## 6. Report
 See `SECURITY.md` for the security threat analysis required for submission.

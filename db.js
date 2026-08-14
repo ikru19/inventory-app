@@ -1,11 +1,12 @@
 // db.js
-// Sets up SQLite database and exports safe, prepared-statement based functions.
-// Using better-sqlite3 with prepared statements protects against SQL Injection (CO2 threat #1).
+// Uses Node.js's BUILT-IN sqlite module (node:sqlite) — no native compilation,
+// no Visual Studio / build tools required. Available in Node.js 22.5+.
+// Prepared statements with '?' placeholders protect against SQL Injection.
 
-const Database = require('better-sqlite3');
+const { DatabaseSync } = require('node:sqlite');
 const path = require('path');
 
-const db = new Database(path.join(__dirname, 'inventory.db'));
+const db = new DatabaseSync(path.join(__dirname, 'inventory.db'));
 
 // Create products table if it doesn't already exist
 db.exec(`
@@ -21,26 +22,42 @@ db.exec(`
 `);
 
 // ---- Prepared statements (reused = faster + safe from SQL injection) ----
-const stmts = {
-  getAll: db.prepare('SELECT * FROM products ORDER BY id DESC'),
-  getById: db.prepare('SELECT * FROM products WHERE id = ?'),
-  insert: db.prepare(
-    `INSERT INTO products (name, category, price, quantity, low_stock_threshold)
-     VALUES (@name, @category, @price, @quantity, @low_stock_threshold)`
-  ),
-  update: db.prepare(
-    `UPDATE products
-     SET name = @name, category = @category, price = @price,
-         quantity = @quantity, low_stock_threshold = @low_stock_threshold
-     WHERE id = @id`
-  ),
-  remove: db.prepare('DELETE FROM products WHERE id = ?'),
-};
+const stmtGetAll = db.prepare('SELECT * FROM products ORDER BY id DESC');
+const stmtGetById = db.prepare('SELECT * FROM products WHERE id = ?');
+const stmtInsert = db.prepare(
+  `INSERT INTO products (name, category, price, quantity, low_stock_threshold)
+   VALUES (?, ?, ?, ?, ?)`
+);
+const stmtUpdate = db.prepare(
+  `UPDATE products
+   SET name = ?, category = ?, price = ?, quantity = ?, low_stock_threshold = ?
+   WHERE id = ?`
+);
+const stmtDelete = db.prepare('DELETE FROM products WHERE id = ?');
 
 module.exports = {
-  getAllProducts: () => stmts.getAll.all(),
-  getProductById: (id) => stmts.getById.get(id),
-  addProduct: (data) => stmts.insert.run(data),
-  updateProduct: (id, data) => stmts.update.run({ ...data, id }),
-  deleteProduct: (id) => stmts.remove.run(id),
+  getAllProducts: () => stmtGetAll.all(),
+
+  getProductById: (id) => stmtGetById.get(Number(id)),
+
+  addProduct: (data) =>
+    stmtInsert.run(
+      data.name,
+      data.category,
+      data.price,
+      data.quantity,
+      data.low_stock_threshold
+    ),
+
+  updateProduct: (id, data) =>
+    stmtUpdate.run(
+      data.name,
+      data.category,
+      data.price,
+      data.quantity,
+      data.low_stock_threshold,
+      Number(id)
+    ),
+
+  deleteProduct: (id) => stmtDelete.run(Number(id)),
 };
