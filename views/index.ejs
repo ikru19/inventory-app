@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Inventory Management System</title>
+  <%- include('partials/head') %>
+</head>
+<body>
+  <div class="container">
+    <header class="topbar">
+      <h1>📦 Inventory Management System</h1>
+      <a href="/products/add" class="btn btn-primary">+ Add Product</a>
+    </header>
+
+    <% if (products.length === 0) { %>
+      <p class="empty">No products yet. Click "Add Product" to get started.</p>
+    <% } else { %>
+      <table class="product-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% products.forEach(p => { %>
+            <tr class="<%= p.quantity <= p.low_stock_threshold ? 'low-stock' : '' %>">
+              <td><%= p.id %></td>
+              <td><%= p.name %></td>
+              <td><%= p.category || '-' %></td>
+              <td>৳<%= p.price.toFixed(2) %></td>
+              <td><%= p.quantity %></td>
+              <td>
+                <% if (p.quantity <= p.low_stock_threshold) { %>
+                  <span class="badge badge-danger">Low Stock</span>
+                <% } else { %>
+                  <span class="badge badge-ok">In Stock</span>
+                <% } %>
+              </td>
+              <td class="actions">
+                <a href="/products/edit/<%= p.id %>" class="btn btn-small">Edit</a>
+                <form action="/products/delete/<%= p.id %>" method="POST" onsubmit="return confirm('Delete this product?');" style="display:inline">
+                  <button type="submit" class="btn btn-small btn-danger">Delete</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+</body>
+</html>
