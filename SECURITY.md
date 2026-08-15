@@ -1,4 +1,5 @@
 # Security Threat Analysis — Inventory Management System
+Prepared by: Ikra Islam (Student ID: 24202007)
 
 This document identifies security threats relevant to a web-based Inventory
 Management System and explains how each is addressed (or should be addressed)
